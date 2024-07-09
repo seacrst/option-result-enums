@@ -71,7 +71,7 @@ Result.fromAsync(async () => await fetch("I love Rust"))
 
 ```
 
-## Create your own Enum
+## Implementing of Enum
 
 ```ts
 
@@ -129,30 +129,68 @@ const bazMatch = MyEnum.Baz().match({
   Baz: (baz) => `my ${baz} value`,
 });
 
-
 console.log({bazMatch}) // { bazMatch: 'my Baz value' }
 
-match(MyEnum.Foo("hello"), () => [
-  (hello) => [MyEnum.Foo(hello), () => console.log(hello + " world")],
-  (bar) => [MyEnum.Bar(), () => console.log("hello " + bar)]
-], (_, hello) => console.log(hello))
+```
 
-// hello world
-// ________________
+## Declarations
 
-match(MyEnum.Bar(), () => [
-  (hello) => [MyEnum.Foo(hello), () => console.log(hello + " world")],
-  (bar) => [MyEnum.Bar(), () => console.log("hello " + bar.toLowerCase())]
-], (_, hello) => console.log(hello))
+```ts
 
-// hello bar
-// ________________
+interface ResultArms<T, E, A> {
+    Err(err: E): A;
+    Ok(ok: T): A;
+}
 
-match(MyEnum.Baz(), () => [
-  (hello) => [MyEnum.Foo(hello), () => console.log(hello + " world")],
-  (bar) => [MyEnum.Bar(), () => console.log("hello " + bar.toLowerCase())]
-], (_, Baz) => console.log(Baz.toLowerCase()))
+class Result<T, E> {
+    #private;
+    $ref: [T | E];
+    private constructor();
+    static Err<E, T>(value: E): Result<T, E>;
+    static Ok<T, E>(value: T): Result<T, E>;
+    static from<T>(value: T | null | undefined): Result<T, null | undefined>;
+    static fromNever<T, E>(fn: () => T): Result<T, E>;
+    static fromPromise<T, E>(promise: Promise<T>): Promise<Result<T, E>>;
+    static fromAsync<T, E>(fn: () => Promise<T>): Promise<Result<T, E>>;
+    match<A>(arms: ResultArms<T, E, A>): A;
+    isErr(): boolean;
+    isOk(): boolean;
+    ok(): Option<T>;
+    err(): Option<E>;
+    unwrap(): T;
+    unwrapOr(value: T): T;
+    unwrapErr(): E;
+    expect(message: string): T;
+    intoOption(): Option<T>;
+    map<F>(fn: (ok: T) => F): Result<F, E>;
+    mapErr<F>(fn: (err: E) => F): Result<T, F>;
+    flatten(): Result<T, E>;
+    ifLet<F>(fn: (r: T | E) => Result<T, E>, ifExpr: (value: T | E) => F, elseExpr?: (value: T | E) => F): F;
+}
 
-// baz
+interface OptionArms<T, A> {
+    Some(value: T): A;
+    None(): A;
+}
+
+class Option<T> {
+    #private;
+    private constructor();
+    static None<T>(): Option<T>;
+    static Some<T>(value: T): Option<T>;
+    static from<T>(value: T | null | undefined): Option<T>;
+    match<A>(arms: OptionArms<T, A>): A;
+    unwrap(): T;
+    unwrapOr(value: T): T;
+    expect(message: string): T;
+    isNone(): boolean;
+    isSome(): boolean;
+    intoResult<E>(error: E): Result<T, E>;
+    map<F>(fn: (value: T) => F): Option<F>;
+    flatten(): Option<T>;
+    okOr<E>(err: E): Result<T, E>;
+    okOrElse<E>(fn: () => E): Result<T, E>;
+    ifLet<F>(fn: (opt: T) => Option<T>, ifExpr: (value: T) => F, elseExpr?: (value: T) => F): F;
+}
 
 ```

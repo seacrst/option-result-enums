@@ -1,6 +1,6 @@
 import { None, Option, Some } from "./option";
 
-export interface ResultArms<T, E, A> {
+interface ResultArms<T, E, A> {
   Err(err: E): A;
   Ok(ok: T): A;
 }
