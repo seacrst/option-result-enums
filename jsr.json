@@ -1,0 +1,5 @@
+{
+  "name": "@seacrest/option-result-enums",
+  "version": "0.0.1",
+  "exports": "./src/mod.ts"
+}
