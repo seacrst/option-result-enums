@@ -1,7 +1,7 @@
 {
   "name": "option-result-rs",
   "description": "Option<T> and Result<T, E> enum types for JavaScript. If you need more Rust-like features, check out derive-rust npm package",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "author": "Seacrest <seacrest@ukr.net>",
   "scripts": {
     "start": "concurrently \"npm run check\" \"npm run watch\"",

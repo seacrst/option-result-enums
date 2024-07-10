@@ -11,7 +11,6 @@ interface ResultSelf<T, E> {
 };
 
 export class Result<T, E> {
-  $ref: [T | E];
   #self: ResultSelf<T, E>;
 
   private constructor(variant: Function, value: T | E) {
