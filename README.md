@@ -144,7 +144,6 @@ interface ResultArms<T, E, A> {
 
 class Result<T, E> {
     #private;
-    $ref: [T | E];
     private constructor();
     static Err<E, T>(value: E): Result<T, E>;
     static Ok<T, E>(value: T): Result<T, E>;
