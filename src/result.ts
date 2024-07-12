@@ -114,17 +114,17 @@ export class Result<T, E> {
     return this.isOk() ? Some(this.#self.value as T) : None();
   }
 
-  map<F>(fn: (ok: T) => F): Result<F, E> {
+  map<F>(predicate: (ok: T) => F): Result<F, E> {
     if (this.isOk()) {
-      return Ok(fn(this.#self.value as T));
+      return Ok(predicate(this.#self.value as T));
     }
 
     return this as unknown as Result<F, E>;
   }
 
-  mapErr<F>(fn: (err: E) => F): Result<T, F> {
+  mapErr<F>(predicate: (err: E) => F): Result<T, F> {
     if (this.isErr()) {
-      return Err(fn(this.#self.value as E));
+      return Err(predicate(this.#self.value as E));
     }
 
     return this as unknown as Result<T, F>;

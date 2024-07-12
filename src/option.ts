@@ -61,12 +61,20 @@ export class Option<T> {
     return this.isSome() ? Ok(this.#self.value) : Err<E, T>(error);
   }
 
-  map<F>(fn: (value: T) => F): Option<F> {
+  map<F>(predicate: (value: T) => F): Option<F> {
     if (this.isSome()) {
-      return Some(fn(this.#self.value));
+      return Some(predicate(this.#self.value));
     }
 
     return this as unknown as Option<F>;
+  }
+
+  filter(predicate: (value: T) => boolean): Option<T> {
+    if (this.isSome()) {
+      return predicate(this.unwrap()) ? this : None()
+    }
+
+    return None();
   }
 
   flatten(): Option<T> {
