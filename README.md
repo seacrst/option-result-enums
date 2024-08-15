@@ -9,7 +9,7 @@ const a: Option<string> = Some("hello");
 const b: Option<string> = None(); 
 const c = None<string>();
 
-// match() method for getting value
+// match againt every variant and return value of the same type
 a.match({
   None: () => "",
   Some: (hello) => hello + " world!"
@@ -18,20 +18,6 @@ a.match({
 c.match({
   None: () => "",
   Some: (v) => v
-})
-
-// ifLet() method for the short way
-
-Some(10).ifLet((n) => Some(n), (n) => {
-  console.log(n / 2)
-})
-
-// as Some is a function itself we can pass its ref
-
-Some(10).ifLet(Some, (num) => {
-  console.log(num / 2);
-}, () => {
-  console.log("None 10"); // you can call optional else expression
 })
 
 // Data validation
@@ -71,79 +57,55 @@ Result.fromAsync(async () => await fetch("I love Rust"))
 
 ```
 
-## Implementing of Enum
-
-```ts
-
-interface MyEnumArms<T, A> {
-  Foo(value: T): A,
-  Bar(value: string): A,
-  Baz(value: string): A,
-}
-
-class MyEnum<T = string> {
-  static Foo = (value: string) => new MyEnum(self => self.variant.Foo, value);
-  static Bar = () => new MyEnum(self => self.variant.Bar);
-  static Baz = () => new MyEnum(self => self.variant.Baz);
-
-  #self: {
-    variant: string,
-    value: T
-  };
-
-  variant = {
-    Foo: (value: string) => value,
-    Bar: () => {},
-    Baz: () => {},
-  }
-
-  private constructor(impl: (self: MyEnum<T>) => Function, value?: T) {
-    let variant = impl(this);
-
-    this.self = {
-      variant: variant.name, 
-      value: variant(value) ?? variant.name as T
-    }
-  }
-
-  match<A>(arms: MyEnumArms<T, A>): A {
-    switch (this.self.variant) {
-      case arms.Foo.name: return arms.Foo(this.self.value);
-      case arms.Bar.name: return arms.Bar(arms.Bar.name);
-      default: return arms.Baz(arms.Baz.name);
-    }
-  }
-}
-
-const fooMatch = MyEnum.Foo("foo").match({
-  Foo: (foo) => `my ${foo} value`,
-  Bar: (bar) => `my ${bar} value`,
-  Baz: (baz) => `my ${baz} value`,
-});
-
-console.log({fooMatch}) // { fooMatch: 'my foo value' }
-
-const bazMatch = MyEnum.Baz().match({
-  Foo: (foo) => `my ${foo} value`,
-  Bar: (bar) => `my ${bar} value`,
-  Baz: (baz) => `my ${baz} value`,
-});
-
-console.log({bazMatch}) // { bazMatch: 'my Baz value' }
-
-```
-
 ## Declarations
 
 ```ts
-
-interface ResultArms<T, E, A> {
-    Err(err: E): A;
-    Ok(ok: T): A;
+class Option<T> {
+    #private;
+    private variant;
+    private constructor();
+    static None<T>(): Option<T>;
+    static Some<T>(value: T): Option<T>;
+    static from<T>(value: T | null | undefined): Option<T>;
+    match<A>(option: OptionArms<T, A>): A;
+    unwrap(): T;
+    unwrapOr(value: T): T;
+    unwrapOrElse(f: () => T): T;
+    expect(message: string): T;
+    inspect(f: (value: T) => any): Option<T>;
+    insert(value: T): T;
+    getOrInsert(value: T): T;
+    getOrInsertWith(f: () => T): T;
+    isNone(): boolean;
+    isSome(): boolean;
+    isSomeAnd(f: (value: T) => boolean): boolean;
+    intoResult<E>(error: E): Result<T, E>;
+    map<F>(predicate: (value: T) => F): Option<F>;
+    mapOr<V>(value: V, f: (value: T) => V): V;
+    mapOrElse<V>(defaultF: () => V, f: (value: T) => V): V;
+    filter(predicate: (value: T) => boolean): Option<T>;
+    flatten(): Option<T>;
+    take(): Option<T>;
+    takeIf(predicate: (value: T) => boolean): Option<T>;
+    replace(value: T): Option<T>;
+    zip<U>(other: Option<U>): Option<[T, U]>;
+    zipWith<O, R>(other: Option<O>, f: (self: T, other: O) => R): Option<R>;
+    unzip<U>(): [Option<T>, Option<U>];
+    transpose<E>(): Result<Option<T>, E>;
+    okOr<E>(err: E): Result<T, E>;
+    okOrElse<E>(err: () => E): Result<T, E>;
+    and<U>(option: Option<U>): Option<U>;
+    andThen<U>(f: (value: T) => Option<U>): Option<U>;
+    or(option: Option<T>): Option<T>;
+    orElse(f: () => Option<T>): Option<T>;
+    xor(option: Option<T>): Option<T>;
+    [Symbol.iterator](): Generator<T | undefined, void, unknown>;
+    iter(): (T | undefined)[];
 }
 
 class Result<T, E> {
     #private;
+    private variant;
     private constructor();
     static Err<E, T>(value: E): Result<T, E>;
     static Ok<T, E>(value: T): Result<T, E>;
@@ -153,44 +115,33 @@ class Result<T, E> {
     static fromAsync<T, E>(fn: () => Promise<T>): Promise<Result<T, E>>;
     match<A>(arms: ResultArms<T, E, A>): A;
     isErr(): boolean;
+    isErrAnd(f: (value: E) => boolean): boolean;
     isOk(): boolean;
+    isOkAnd(f: (value: T) => boolean): boolean;
     ok(): Option<T>;
     err(): Option<E>;
     unwrap(): T;
     unwrapOr(value: T): T;
+    unwrapOrElse(f: (err: E) => T): T;
     unwrapErr(): E;
     expect(message: string): T;
+    intoOk(): T;
+    intoErr(): E;
     intoOption(): Option<T>;
     map<F>(predicate: (ok: T) => F): Result<F, E>;
+    mapOr<V>(value: V, f: (ok: T) => V): V;
+    mapOrElse<F, V>(defaultF: (err: E) => V, f: (ok: T) => V): V;
     mapErr<F>(predicate: (err: E) => F): Result<T, F>;
     flatten(): Result<T, E>;
-    ifLet<F>(fn: (r: T | E) => Result<T, E>, ifExpr: (value: T | E) => F, elseExpr?: (value: T | E) => F): F;
-}
-
-interface OptionArms<T, A> {
-    Some(value: T): A;
-    None(): A;
-}
-
-class Option<T> {
-    #private;
-    private constructor();
-    static None<T>(): Option<T>;
-    static Some<T>(value: T): Option<T>;
-    static from<T>(value: T | null | undefined): Option<T>;
-    match<A>(arms: OptionArms<T, A>): A;
-    unwrap(): T;
-    unwrapOr(value: T): T;
-    expect(message: string): T;
-    isNone(): boolean;
-    isSome(): boolean;
-    intoResult<E>(error: E): Result<T, E>;
-    map<F>(predicate: (value: T) => F): Option<F>;
-    filter(predicate: (value: T) => boolean): Option<T>;
-    flatten(): Option<T>;
-    okOr<E>(err: E): Result<T, E>;
-    okOrElse<E>(fn: () => E): Result<T, E>;
-    ifLet<F>(fn: (opt: T) => Option<T>, ifExpr: (value: T) => F, elseExpr?: (value: T) => F): F;
+    transpose(): Option<Result<T, E>>;
+    inspect(f: (ok: T) => any): Result<T, E>;
+    inspectErr(f: (err: E) => any): Result<T, E>;
+    and<U>(res: Result<U, E>): Result<U, E>;
+    andThen<U>(f: (ok: T) => Result<U, E>): Result<U, E>;
+    or<F>(res: Result<T, F>): Result<T, F>;
+    orElse<F>(f: (err: E) => Result<T, F>): Result<T, F>;
+    [Symbol.iterator](): Generator<T | E, void, unknown>;
+    iter(): (T | E)[];
 }
 
 ```
