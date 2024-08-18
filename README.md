@@ -5,15 +5,16 @@ If you need more Rust-like features, check out [derive-rust](https://www.npmjs.c
 ## Option\<T>
 
 ```ts
-const a: Option<string> = Some("hello");
+const a = Some("hello");
 const b: Option<string> = None(); 
 const c = None<string>();
 
-// match againt every variant and return value of the same type
-a.match({
+const value = a.match({
   None: () => "",
   Some: (hello) => hello + " world!"
-})
+});
+
+console.log(value) // hello world!
 
 c.match({
   None: () => "",
@@ -62,7 +63,6 @@ Result.fromAsync(async () => await fetch("I love Rust"))
 ```ts
 class Option<T> {
     #private;
-    private variant;
     private constructor();
     static None<T>(): Option<T>;
     static Some<T>(value: T): Option<T>;
@@ -105,7 +105,6 @@ class Option<T> {
 
 class Result<T, E> {
     #private;
-    private variant;
     private constructor();
     static Err<E, T>(value: E): Result<T, E>;
     static Ok<T, E>(value: T): Result<T, E>;
